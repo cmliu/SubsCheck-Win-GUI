@@ -1994,8 +1994,9 @@ namespace subs_check.win.gui
                                         // 确保进度条显示100%
                                         progressBar1.Value = 100;
                                     }
-
+                                    //添加排除规则
                                     Log($"{displayName} 覆写配置文件 下载成功");
+                                    AddDirectRule(Path.Combine(outputFolderPath, fileName));
                                 }
                                 else
                                 {
@@ -2013,8 +2014,68 @@ namespace subs_check.win.gui
                 }
                 else
                 {
+                    //添加排除规则
+                    if(!File.ReadAllText(downloadFilePath).Contains("subs-check.exe"))
+                        AddDirectRule(Path.Combine(outputFolderPath, fileName));
+
                     if (汇报Log) Log($"{displayName} 覆写配置文件 已就绪。");
                 }
+            }
+        }
+
+        /// <summary>
+        /// 对覆写文件添加"PROCESS-NAME,subs-check.exe,DIRECT"的前置规则，使其不受Tun模式影响
+        /// </summary>
+        /// <param name="filePath">文件路径</param>
+        private void AddDirectRule(string filePath)
+        {
+            string newRule = "  - \"PROCESS-NAME,subs-check.exe,DIRECT\"";
+
+            try
+            {
+                // 读取 YAML 文件内容
+                string[] lines = File.ReadAllLines(filePath);
+
+                int rulesIndex = -1;
+                // 找到 rules: 所在的行
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Trim().StartsWith("rules:"))
+                    {
+                        rulesIndex = i;
+                        break;
+                    }
+                }
+
+                if (rulesIndex != -1)
+                {
+                    // 创建一个新的列表来存储修改后的行
+                    List<string> newLines = new List<string>();
+                    // 将 rules: 之前的行添加到新列表中
+                    for (int i = 0; i < rulesIndex + 1; i++)
+                    {
+                        newLines.Add(lines[i]);
+                    }
+                    // 添加新的规则
+                    newLines.Add(newRule);
+                    // 将 rules: 之后的行添加到新列表中
+                    for (int i = rulesIndex + 1; i < lines.Length; i++)
+                    {
+                        newLines.Add(lines[i]);
+                    }
+
+                    // 将修改后的内容写回文件
+                    File.WriteAllLines(filePath, newLines);
+                    Log("绕过subs-check.exe规则添加成功");
+                }
+                else
+                {
+                    Log("未找到 'rules:' 节点");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"添加规则错误：{ex.Message}");
             }
         }
     }
