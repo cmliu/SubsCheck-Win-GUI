@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -1996,7 +1996,7 @@ namespace subs_check.win.gui
                                     }
                                     //添加排除规则
                                     Log($"{displayName} 覆写配置文件 下载成功");
-                                    AddDirectRule(Path.Combine(outputFolderPath, fileName));
+                                    AddDirectRule(downloadFilePath);
                                 }
                                 else
                                 {
@@ -2016,7 +2016,7 @@ namespace subs_check.win.gui
                 {
                     //添加排除规则
                     if(!File.ReadAllText(downloadFilePath).Contains("subs-check.exe"))
-                        AddDirectRule(Path.Combine(outputFolderPath, fileName));
+                        AddDirectRule(downloadFilePath);
 
                     if (汇报Log) Log($"{displayName} 覆写配置文件 已就绪。");
                 }
