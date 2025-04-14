@@ -37,6 +37,9 @@ namespace subs_check.win.gui
             InitializeComponent();
             originalNotifyIcon = notifyIcon1.Icon;
 
+            toolTip1.SetToolTip(checkBox5, "勾选后，程序将在Windows启动时自动运行");
+            toolTip1.SetToolTip(checkBoxAutoStart, "勾选后，程序启动时将自动开始检查节点");
+
             toolTip1.SetToolTip(checkBoxAutoStart, "勾选后，程序启动时将自动开始检查节点");
 
             toolTip1.SetToolTip(numericUpDown1, "并发线程数：推荐 宽带峰值/50M。");
@@ -156,11 +159,19 @@ namespace subs_check.win.gui
             timer1.Enabled = false;
             if (button2.Text == "高级设置∧") button2_Click(sender, e);
 
-            // 检查实时启动设置
-            if (checkBoxAutoStart.Checked && !CheckCommandLineParameter("-auto"))
+            // 检查开机启动设置
+            if (checkBox5.Checked && !CheckCommandLineParameter("-auto"))
             {
-                button1_Click(this, EventArgs.Empty);
+            // 如果是开机启动，只显示窗口不自动检测
+            this.Show();
+            notifyIcon1.Visible = true;
             }
+
+            // 检查自动检测设置
+            if (checkBoxAutoStart.Checked && !CheckCommandLineParameter("-auto")) 
+         {
+             button1_Click(this, EventArgs.Empty);
+         }
 
             // 检查并创建config文件夹
             string executablePath = System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath);
@@ -451,17 +462,16 @@ namespace subs_check.win.gui
                     else checkBox4.Checked = false;
 
                     string autoStart = 读取config字符串(config, "auto-start");
-                    if (autoStart != null && autoStart == "true") 
-                        {
-                            checkBoxAutoStart.Checked = true;
-                            Log("从配置中读取到实时启动已启用，将自动检测节点并执行任务");
-                        }
-                         else
-                        {
-                            checkBoxAutoStart.Checked = false;
-                            Log("从配置中读取到实时启动已禁用，将不会自动检测节点，需点击启动执行任务");
-                        }
-
+    if (autoStart != null && autoStart == "true") 
+    {
+        checkBoxAutoStart.Checked = true;
+        Log("从配置中读取到自动检测已启用");
+    }
+    else
+    {
+        checkBoxAutoStart.Checked = false;
+        Log("从配置中读取到自动检测已禁用");
+    }
                     string apikey = 读取config字符串(config, "api-key");
                     if (apikey != null)
                     {
@@ -768,7 +778,6 @@ namespace subs_check.win.gui
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void button2_Click(object sender, EventArgs e)
         {
             if (button2.Text == "高级设置∧")

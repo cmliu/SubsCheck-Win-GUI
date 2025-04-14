@@ -170,7 +170,7 @@
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(72, 16);
             this.checkBox5.TabIndex = 30;
-            this.checkBox5.Text = "开机自启";
+            this.checkBox5.Text = "开机启动";
             this.checkBox5.UseVisualStyleBackColor = true;
             this.checkBox5.CheckedChanged += new System.EventHandler(this.checkBox5_CheckedChanged);
             // 
@@ -433,7 +433,7 @@
             this.checkBoxAutoStart.Name = "checkBoxAutoStart";
             this.checkBoxAutoStart.Size = new System.Drawing.Size(72, 20);
             this.checkBoxAutoStart.TabIndex = 31;
-            this.checkBoxAutoStart.Text = "实时启动";
+            this.checkBoxAutoStart.Text = "自动检测";
             this.checkBoxAutoStart.CheckedChanged += new System.EventHandler(this.checkBoxAutoStart_CheckedChanged);
             // 
             // numericUpDown6
