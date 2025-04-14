@@ -53,6 +53,7 @@
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
+            this.checkBoxAutoStart = new System.Windows.Forms.CheckBox();
             this.numericUpDown6 = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown5 = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -141,6 +142,7 @@
             this.groupBox1.Controls.Add(this.comboBox4);
             this.groupBox1.Controls.Add(this.button3);
             this.groupBox1.Controls.Add(this.textBox1);
+            this.groupBox1.Controls.Add(this.button2);
             this.groupBox1.Controls.Add(this.comboBox1);
             this.groupBox1.Controls.Add(this.numericUpDown4);
             this.groupBox1.Controls.Add(this.numericUpDown3);
@@ -151,9 +153,9 @@
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.button2);
             this.groupBox1.Controls.Add(this.button1);
             this.groupBox1.Controls.Add(this.label8);
+            this.groupBox1.Controls.Add(this.checkBoxAutoStart);
             this.groupBox1.Location = new System.Drawing.Point(13, 13);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(174, 484);
@@ -164,7 +166,7 @@
             // checkBox5
             // 
             this.checkBox5.AutoSize = true;
-            this.checkBox5.Location = new System.Drawing.Point(91, 428);
+            this.checkBox5.Location = new System.Drawing.Point(91, 430);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(72, 16);
             this.checkBox5.TabIndex = 30;
@@ -396,9 +398,9 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(88, 450);
+            this.button2.Location = new System.Drawing.Point(8, 453);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.Size = new System.Drawing.Size(74, 23);
             this.button2.TabIndex = 1;
             this.button2.Text = "高级设置∧";
             this.button2.UseVisualStyleBackColor = true;
@@ -407,9 +409,9 @@
             // button1
             // 
             this.button1.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.button1.Location = new System.Drawing.Point(7, 428);
+            this.button1.Location = new System.Drawing.Point(7, 425);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 45);
+            this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
             this.button1.Text = "▶️ 启动";
             this.button1.UseVisualStyleBackColor = true;
@@ -424,6 +426,15 @@
             this.label8.TabIndex = 9;
             this.label8.Text = "节点池订阅链接(点击编辑)：";
             this.label8.Click += new System.EventHandler(this.textBox1_DoubleClick);
+            // 
+            // checkBoxAutoStart
+            // 
+            this.checkBoxAutoStart.Location = new System.Drawing.Point(91, 455);
+            this.checkBoxAutoStart.Name = "checkBoxAutoStart";
+            this.checkBoxAutoStart.Size = new System.Drawing.Size(72, 20);
+            this.checkBoxAutoStart.TabIndex = 31;
+            this.checkBoxAutoStart.Text = "实时启动";
+            this.checkBoxAutoStart.CheckedChanged += new System.EventHandler(this.checkBoxAutoStart_CheckedChanged);
             // 
             // numericUpDown6
             // 
@@ -1561,4 +1572,6 @@
         private System.Windows.Forms.CheckBox checkBox5;
     }
 }
+
+
 
