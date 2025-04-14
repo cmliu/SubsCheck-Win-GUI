@@ -31,10 +31,16 @@ namespace subs_check.win.gui
         string 最新GUI版本号 = "未知版本";
         private string nextCheckTime = null;// 用于存储下次检查时间
         string WebUIapiKey = "CMLiussss";
+        private CheckBox checkBoxAutoStart;
         public Form1()
         {
             InitializeComponent();
             originalNotifyIcon = notifyIcon1.Icon;
+
+            toolTip1.SetToolTip(checkBox5, "勾选后，程序将在Windows启动时自动运行");
+            toolTip1.SetToolTip(checkBoxAutoStart, "勾选后，程序启动时将自动开始检查节点");
+
+            toolTip1.SetToolTip(checkBoxAutoStart, "勾选后，程序启动时将自动开始检查节点");
 
             toolTip1.SetToolTip(numericUpDown1, "并发线程数：推荐 宽带峰值/50M。");
             toolTip1.SetToolTip(numericUpDown2, "检查间隔时间(分钟)：放置后台的时候，下次自动测速的间隔时间。\n\n 双击切换 使用「cron表达式」");
@@ -152,6 +158,21 @@ namespace subs_check.win.gui
         {
             timer1.Enabled = false;
             if (button2.Text == "高级设置∧") button2_Click(sender, e);
+
+            // 检查开机启动设置
+            if (checkBox5.Checked && !CheckCommandLineParameter("-auto"))
+            {
+            // 如果是开机启动，只显示窗口不自动检测
+            this.Show();
+            notifyIcon1.Visible = true;
+            }
+
+            // 检查自动检测设置
+            if (checkBoxAutoStart.Checked && !CheckCommandLineParameter("-auto")) 
+         {
+             button1_Click(this, EventArgs.Empty);
+         }
+
             // 检查并创建config文件夹
             string executablePath = System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath);
             string configFolderPath = System.IO.Path.Combine(executablePath, "config");
@@ -440,6 +461,17 @@ namespace subs_check.win.gui
                     if (enablewebui != null && enablewebui == "true") checkBox4.Checked = true;
                     else checkBox4.Checked = false;
 
+                    string autoStart = 读取config字符串(config, "auto-start");
+    if (autoStart != null && autoStart == "true") 
+    {
+        checkBoxAutoStart.Checked = true;
+        Log("从配置中读取到自动检测已启用");
+    }
+    else
+    {
+        checkBoxAutoStart.Checked = false;
+        Log("从配置中读取到自动检测已禁用");
+    }
                     string apikey = 读取config字符串(config, "api-key");
                     if (apikey != null)
                     {
@@ -586,6 +618,11 @@ namespace subs_check.win.gui
 
                 // 保存sub-store-port
                 config["sub-store-port"] = $@":{numericUpDown7.Value}";
+                // 是否开机自启
+                config["rename-node"] = checkBox1.Checked? "true" : "false";
+                config["gui-auto"] = checkBox5.Checked;//是否开机自启
+                config["auto-start"] = checkBoxAutoStart.Checked; // 程序启动时自动运行
+
 
                 string githubRawPrefix = "https://raw.githubusercontent.com/";
                 if (githubProxyCheck)
@@ -621,7 +658,7 @@ namespace subs_check.win.gui
                 if (System.IO.File.Exists(allyamlFilePath))
                 {
                     subUrls.Add($"http://127.0.0.1:{numericUpDown6.Value}/all.yaml");
-                    Log("已加载上次测试结果。");
+                    //Log("已加载上次测试结果。");
                 }
 
                 if (!string.IsNullOrEmpty(textBox1.Text))
@@ -741,7 +778,6 @@ namespace subs_check.win.gui
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void button2_Click(object sender, EventArgs e)
         {
             if (button2.Text == "高级设置∧")
@@ -772,6 +808,11 @@ namespace subs_check.win.gui
                 {
                     string executablePath = Path.GetDirectoryName(Application.ExecutablePath);
                     string allyamlFilePath = Path.Combine(executablePath, "output", "all.yaml");
+                    // 添加检查并提示
+        if (checkBox5.Checked && File.Exists(allyamlFilePath))
+        {
+            Log("已加载上次测试结果。");
+        }
                     button3.Enabled = File.Exists(allyamlFilePath);
                 }
 
@@ -2089,6 +2130,28 @@ namespace subs_check.win.gui
             if (checkBox2.Checked == true) checkBox1.Checked = true;
         }
 
+        private void checkBoxAutoStart_CheckedChanged(object sender, EventArgs e)
+        {
+         if (checkBoxAutoStart.Checked)
+            {
+            Log("已启用实时启动功能，程序启动时将自动开始检查节点");
+
+            // 只有当按钮显示"启动"时才实时启动
+                 if (button1.Text == "▶️ 启动")
+                 {
+                  button1_Click(this, EventArgs.Empty); // 模拟点击启动按钮
+                 }
+             }
+             else
+             {
+            Log("已禁用实时启动功能");
+            }
+
+             // 立即保存设置
+            SaveConfig(false); // 不检查github代理
+            
+        }
+
         private async void timer3_Tick(object sender, EventArgs e)
         {
             if (button1.Text == "⏹️ 停止") 
@@ -2960,7 +3023,7 @@ namespace subs_check.win.gui
                     if (File.Exists(shortcutPath))
                     {
                         File.Delete(shortcutPath);
-                        Log("已移除开机启动项，下次开机将不会自动启动");
+                        Log("已移除开机启动项，下次开机将不会自动运行程序");
                     }
                 }
             }
