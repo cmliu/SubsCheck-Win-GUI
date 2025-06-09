@@ -10,21 +10,13 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        configuration: [Debug]
-        # 在 tag 推送时使用 Release 配置
-        include:
-          - configuration: Release
-            if: startsWith(github.ref, 'refs/tags/v')
-
     runs-on: windows-latest
 
     env:
       Solution_Name: subs-check.win.gui.sln
       Project_Path: subs-check.win.gui.csproj
       Wap_Project_Directory: .
-      Configuration: ${{ matrix.configuration }}
+      Configuration: ${{ startsWith(github.ref, 'refs/tags/v') && 'Release' || 'Debug' }}
 
     steps:
     - name: Checkout
@@ -40,32 +32,27 @@ jobs:
 
     # Add MSBuild to the PATH
     - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v1.1
-
-    # Install NuGet packages
+      uses: microsoft/setup-msbuild@v1.1    # Install NuGet packages
     - name: Install NuGet packages
       run: |
-        nuget sources Add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json"
-        nuget install YamlDotNet -Version 16.0.0
-        mkdir packages
-        xcopy /E /I YamlDotNet* packages\
+        nuget restore $env:Solution_Name
+        nuget install YamlDotNet -Version 16.0.0 -OutputDirectory packages -DependencyVersion Highest
+        Copy-Item "packages\YamlDotNet.*\lib\net45\YamlDotNet.dll" -Destination "bin\$env:Configuration\" -Force
 
     # Restore the application
     - name: Restore the application
-      run: |
-        nuget restore $env:Solution_Name
-        msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
       env:
-        Configuration: ${{ matrix.configuration }}
+        Configuration: ${{ startsWith(github.ref, 'refs/tags/v') && 'Release' || 'Debug' }}
 
     # Build the application
     - name: Build the application
       run: |
         msbuild $env:Solution_Name /p:Configuration=$env:Configuration /p:Platform="Any CPU" /p:DebugSymbols=false /p:DebugType=None
       env:
-        Configuration: ${{ matrix.configuration }}
+        Configuration: ${{ startsWith(github.ref, 'refs/tags/v') && 'Release' || 'Debug' }}
 
-    # Create release package
+    # Create release package (only on tag)
     - name: Create release package
       if: startsWith(github.ref, 'refs/tags/v')
       run: |
@@ -85,12 +72,12 @@ jobs:
         prerelease: false
         generate_release_notes: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    # Upload build artifacts (for non-release builds)
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    # Upload build artifacts (only on tag)
     - name: Upload build artifacts
       if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v4
       with:
         name: Build Artifacts
-        path: bin\${{ matrix.configuration }}
+        path: bin\Release
+        compression-level: 9
+        retention-days: 5
