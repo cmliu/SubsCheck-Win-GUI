@@ -61,7 +61,7 @@ jobs:
         Copy-Item "bin\Release\*" -Destination $releaseDir -Recurse
         Compress-Archive -Path "$releaseDir\*" -DestinationPath "SubsCheck-Win-GUI.zip" -Force    
         
-    # Create GitHub Release from tag
+      # Create GitHub Release from tag
     - name: Create GitHub Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v1
@@ -72,7 +72,19 @@ jobs:
         prerelease: false
         generate_release_notes: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    # Upload build artifacts (only on tag)
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Delete the tag after successful release
+    - name: Delete tag
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        git push origin --delete "refs/tags/${{ github.ref_name }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Upload build artifacts
     - name: Upload build artifacts
       if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v4
