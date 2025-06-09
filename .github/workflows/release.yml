@@ -89,8 +89,8 @@ jobs:
 
     # Upload build artifacts (for non-release builds)
     - name: Upload build artifacts
-      if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/v')
-      uses: actions/upload-artifact@v3
+      if: tartsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-artifact@v4
       with:
         name: Build Artifacts
         path: bin\${{ matrix.configuration }}
