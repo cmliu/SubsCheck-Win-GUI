@@ -36,13 +36,15 @@
 # For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
 # refer to https://github.com/microsoft/github-actions-for-desktop-apps
 
-name: .NET Core Desktop
+name: release CI
 
 on:
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  release:
+    types: [created]
 
 jobs:
 
@@ -51,6 +53,10 @@ jobs:
     strategy:
       matrix:
         configuration: [Debug, Release]
+        # 仅在非 release 事件时包含 Debug 配置
+        include:
+          - configuration: Debug
+            if: github.event_name != 'release'
 
     runs-on: windows-latest  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -79,6 +85,7 @@ jobs:
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
+      if: github.event_name != 'release'
       run: dotnet test
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
@@ -89,27 +96,43 @@ jobs:
 
     # Decode the base 64 encoded pfx and save the Signing_Certificate
     - name: Decode the pfx
+      if: github.event_name == 'release'
       run: |
         $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
         $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
-    # Create the app package by building and packaging the Windows Application Packaging project
-    - name: Create the app package
-      run: msbuild $env:Wap_Project_Path /p:Configuration=$env:Configuration /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:PackageCertificatePassword=${{ secrets.Pfx_Key }}
+    # Build the application
+    - name: Build the application
+      run: |
+        msbuild $env:Solution_Name /p:Configuration=$env:Configuration /p:Platform="Any CPU" /p:DebugSymbols=false /p:DebugType=None
       env:
-        Appx_Bundle: Always
-        Appx_Bundle_Platforms: x86|x64
-        Appx_Package_Build_Mode: StoreUpload
         Configuration: ${{ matrix.configuration }}
 
-    # Remove the pfx
-    - name: Remove the pfx
-      run: Remove-Item -path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx
+    # Create release package
+    - name: Create release package
+      if: github.event_name == 'release'
+      run: |
+        $releaseDir = "release-package"
+        New-Item -ItemType Directory -Path $releaseDir
+        Copy-Item "bin\${{ matrix.configuration }}\*" -Destination $releaseDir -Recurse
+        Compress-Archive -Path "$releaseDir\*" -DestinationPath "SubsCheck-Win-GUI.zip"
 
-    # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
+    # Upload release artifacts
+    - name: Upload release artifacts
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: SubsCheck-Win-GUI.zip
+        name: ${{ github.event.release.name }}
+        body: ${{ github.event.release.body }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Upload build artifacts (for non-release builds)
     - name: Upload build artifacts
+      if: github.event_name != 'release'
       uses: actions/upload-artifact@v4
       with:
-        name: MSIX Package
-        path: ${{ env.Wap_Project_Directory }}\AppPackages
+        name: Build Artifacts
+        path: bin\${{ matrix.configuration }}
