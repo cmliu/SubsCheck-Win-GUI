@@ -89,7 +89,7 @@ jobs:
 
     # Upload build artifacts (for non-release builds)
     - name: Upload build artifacts
-      if: tartsWith(github.ref, 'refs/tags/v')
+      if: startsWith(github.ref, 'refs/tags/v')
       uses: actions/upload-artifact@v4
       with:
         name: Build Artifacts
