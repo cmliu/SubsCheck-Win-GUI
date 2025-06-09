@@ -59,15 +59,15 @@ jobs:
         $releaseDir = "release-package"
         New-Item -ItemType Directory -Path $releaseDir -Force
         Copy-Item "bin\Release\*" -Destination $releaseDir -Recurse
-        Compress-Archive -Path "$releaseDir\*" -DestinationPath "SubsCheck-Win-GUI.zip" -Force
-
+        Compress-Archive -Path "$releaseDir\*" -DestinationPath "SubsCheck-Win-GUI.zip" -Force    
+        
     # Create GitHub Release from tag
     - name: Create GitHub Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v1
       with:
         files: SubsCheck-Win-GUI.zip
-        name: Release ${{ github.ref_name }}
+        name: ${{ github.ref_name }}
         draft: false
         prerelease: false
         generate_release_notes: true
